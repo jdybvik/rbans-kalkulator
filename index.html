@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBANS Skåringskalkulator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --green: #16a34a;
+    --yellow: #ca8a04;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card h2 .icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  /* Age selector */
+  .age-row {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .field {
+    flex: 1;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .field select, .field input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.15s;
+    appearance: none;
+  }
+
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  .field select:focus, .field input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+  }
+
+  .field input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+
+  /* Subtest input grid */
+  .subtest-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .subtest-grid { grid-template-columns: 1fr; }
+  }
+
+  .subtest-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    transition: border-color 0.15s;
+  }
+
+  .subtest-item:focus-within {
+    border-color: var(--primary);
+  }
+
+  .subtest-item label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    flex: 1;
+    white-space: nowrap;
+  }
+
+  .subtest-item input {
+    width: 64px;
+    padding: 6px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    text-align: center;
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .subtest-item input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+  }
+
+  .section-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  .section-label:not(:first-of-type) {
+    margin-top: 16px;
+  }
+
+  /* Calculate button */
+  .btn-calc {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 4px;
+  }
+
+  .btn-calc:hover { background: #1d4ed8; }
+  .btn-calc:active { transform: scale(0.98); }
+
+  /* Results */
+  #results { display: none; }
+  #results.visible { display: block; }
+
+  .results-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+  }
+
+  .results-table thead th {
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .results-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .results-table tbody tr:last-child td { border-bottom: none; }
+
+  .results-table .name { font-weight: 500; }
+  .results-table .score { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .badge-low { background: #fef2f2; color: var(--red); }
+  .badge-below { background: #fff7ed; color: var(--orange); }
+  .badge-avg { background: #f0fdf4; color: var(--green); }
+  .badge-above { background: #eff6ff; color: var(--primary); }
+
+  /* Normal curve */
+  .curve-wrapper {
+    width: 100%;
+    position: relative;
+  }
+
+  .curve-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .svg-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(30,41,59,0.92);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+    margin-top: -8px;
+    opacity: 0;
+    transition: opacity 0.12s;
+    z-index: 10;
+  }
+
+  .svg-tooltip.visible { opacity: 1; }
+
+  .legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-bar {
+    width: 18px;
+    height: 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .no-results-msg {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 24px 0;
+    font-size: 0.9rem;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 600px) {
+    .container { padding: 16px 12px 40px; }
+    .card { padding: 16px; }
+    header h1 { font-size: 1.4rem; }
+    .age-row { flex-direction: column; gap: 10px; }
+    .results-table { font-size: 0.82rem; }
+    .results-table thead th, .results-table tbody td { padding: 8px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>RBANS Skåringskalkulator</h1>
+    <p>Norsk normdata &mdash; legg inn r&aring;sk&aring;rer for &aring; f&aring; normerte resultater</p>
+  </header>
+
+  <!-- Age group -->
+  <div class="card">
+    <h2>
+      <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>
+      Alder
+    </h2>
+    <div class="age-row">
+      <div class="field">
+        <label for="ageGroup">Aldersgruppe</label>
+        <select id="ageGroup">
+          <option value="">Velg aldersgruppe</option>
+          <option value="20-39">20&ndash;39 &aring;r</option>
+          <option value="40-49">40&ndash;49 &aring;r</option>
+          <option value="50-59">50&ndash;59 &aring;r</option>
+          <option value="60-69">60&ndash;69 &aring;r</option>
+          <option value="70-79">70&ndash;79 &aring;r</option>
+          <option value="80-89">80&ndash;89 &aring;r</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subtest inputs -->
+  <div class="card">
+    <h2>
+      <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+      R&aring;sk&aring;rer
+    </h2>
+
+    <div class="subtest-grid">
+      <div class="subtest-item"><label for="raw_ordliste_innlaering">Ordliste innl&aelig;ring</label><input type="number" id="raw_ordliste_innlaering" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_historie_innlaering">Historie innl&aelig;ring</label><input type="number" id="raw_historie_innlaering" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_figurkopiering">Figurkopiering</label><input type="number" id="raw_figurkopiering" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_verbal_flyt_a">Verbal flyt versjon A</label><input type="number" id="raw_verbal_flyt_a" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_verbal_flyt_b">Verbal flyt versjon B</label><input type="number" id="raw_verbal_flyt_b" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_tallhukommelse">Tallhukommelse</label><input type="number" id="raw_tallhukommelse" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_koding">Koding</label><input type="number" id="raw_koding" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_historiegjenkalling">Historiegjenkalling</label><input type="number" id="raw_historiegjenkalling" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_figurgjenkalling">Figurgjenkalling</label><input type="number" id="raw_figurgjenkalling" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_linjeorientering">Linjeorientering</label><input type="number" id="raw_linjeorientering" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_bildebenevning">Bildebenevning</label><input type="number" id="raw_bildebenevning" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_ordlistegjenkalling">Ordlistegjenkalling</label><input type="number" id="raw_ordlistegjenkalling" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_ordlistegjenkjenning">Ordlistegjenkjenning</label><input type="number" id="raw_ordlistegjenkjenning" min="0" placeholder="&mdash;"></div>
+    </div>
+
+    <br>
+    <button class="btn-calc" id="calcBtn">Beregn normerte sk&aring;rer</button>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="card">
+      <h2>
+        <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clip-rule="evenodd"/></svg>
+        Resultater
+      </h2>
+      <div style="overflow-x:auto;">
+        <table class="results-table" id="resultsTable">
+          <thead><tr><th>Deltest</th><th>R&aring;sk&aring;re</th><th>Normert sk&aring;re</th><th>Klassifisering</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="no-results-msg" id="noResults" style="display:none;">Ingen deltester fylt ut</div>
+    </div>
+
+    <!-- Normal curve -->
+    <div class="card">
+      <h2>
+        <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/></svg>
+        Visuell profil
+      </h2>
+      <div class="curve-wrapper" id="curveWrapper">
+        <svg id="curveSvg" class="curve-svg" viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="svg-tooltip" id="svgTooltip"></div>
+      </div>
+      <div class="legend-row" id="legend"></div>
+    </div>
+  </div>
+
+  <footer style="text-align:center; padding:24px 0 0; color:#94a3b8; font-size:0.8rem; line-height:1.6;">
+    <p>Denne kalkulatoren er ment som et hjelpeverkт&oslash;y og erstatter ikke klinisk vurdering.<br>
+    Utvikler tar ikke ansvar for eventuelle feil i normdata eller beregninger.<br>
+    Resultatene m&aring; alltid kvalitetssikres av kvalifisert fagperson f&oslash;r bruk i klinisk sammenheng.</p>
+  </footer>
+</div>
+
+<script>
+let NORMS = null;
+
+fetch('rbans_data.json')
+  .then(r => r.json())
+  .then(d => { NORMS = d; })
+  .catch(() => alert('Kunne ikke laste normdata (rbans_data.json).'));
+
+const SCALED_SUBTESTS = [
+  { key: 'ordliste_innlaering', label: 'Ordliste innlæring' },
+  { key: 'historie_innlaering', label: 'Historie innlæring' },
+  { key: 'figurkopiering', label: 'Figurkopiering' },
+  { key: 'verbal_flyt_a', label: 'Verbal flyt versjon A' },
+  { key: 'verbal_flyt_b', label: 'Verbal flyt versjon B' },
+  { key: 'tallhukommelse', label: 'Tallhukommelse' },
+  { key: 'koding', label: 'Koding' },
+  { key: 'historiegjenkalling', label: 'Historiegjenkalling' },
+  { key: 'figurgjenkalling', label: 'Figurgjenkalling' },
+];
+
+const PERCENTILE_SUBTESTS = [
+  { key: 'linjeorientering', label: 'Linjeorientering' },
+  { key: 'bildebenevning', label: 'Bildebenevning' },
+  { key: 'ordlistegjenkalling', label: 'Ordlistegjenkalling' },
+  { key: 'ordlistegjenkjenning', label: 'Ordlistegjenkjenning' },
+];
+
+function lookupScaled(ageData, subtest, rawScore) {
+  const entries = ageData.scaled_scores[subtest];
+  if (!entries) return null;
+  for (const e of entries) {
+    if (rawScore >= e.min && rawScore <= e.max) return e.scaled_score;
+  }
+  return null;
+}
+
+function lookupPercentile(ageData, subtest, rawScore) {
+  const entries = ageData.percentiles[subtest];
+  if (!entries) return null;
+  for (const e of entries) {
+    if (rawScore >= e.min && rawScore <= e.max) return e.percentile;
+  }
+  return null;
+}
+
+function classifyScaled(s) {
+  if (s <= 3) return { label: 'Klart under gj.snitt', cls: 'badge-low' };
+  if (s <= 6) return { label: 'Under gjennomsnitt', cls: 'badge-below' };
+  if (s <= 13) return { label: 'Gjennomsnitt', cls: 'badge-avg' };
+  return { label: 'Over gjennomsnitt', cls: 'badge-above' };
+}
+
+function classifyPercentile(p) {
+  if (p === '≤ 2' || p === '3–9') return { label: 'Klart under gj.snitt', cls: 'badge-low' };
+  if (p === '10–16' || p === '17–25') return { label: 'Under gjennomsnitt', cls: 'badge-below' };
+  if (p === '26–50' || p === '51–75') return { label: 'Gjennomsnitt', cls: 'badge-avg' };
+  return { label: 'Over gjennomsnitt', cls: 'badge-above' };
+}
+
+// Map scaled score -> approximate z-score (scaled mean=10, SD=3)
+function scaledToZ(s) { return (s - 10) / 3; }
+
+// Map percentile band label to approximate z-score (midpoint)
+function percentileToZ(p) {
+  const map = {
+    '≤ 2': -2.3,
+    '3–9': -1.5,
+    '10–16': -1.1,
+    '17–25': -0.75,
+    '26–50': -0.25,
+    '51–75': 0.25,
+    '> 75': 1.2,
+  };
+  return map[p] ?? 0;
+}
+
+// Map percentile band to z-score range [low, high] for range bar
+function percentileToZRange(p) {
+  const map = {
+    '≤ 2':   [-3.2, -2.05],
+    '3–9':   [-1.88, -1.34],
+    '10–16': [-1.28, -0.99],
+    '17–25': [-0.95, -0.67],
+    '26–50': [-0.67, 0.0],
+    '51–75': [0.0, 0.67],
+    '> 75':  [0.67, 2.0],
+  };
+  return map[p] ?? [-0.25, 0.25];
+}
+
+// Colors for dots
+const DOT_COLORS = [
+  '#2563eb','#dc2626','#16a34a','#ca8a04','#9333ea',
+  '#0891b2','#db2777','#ea580c','#4f46e5','#059669',
+  '#be123c','#7c3aed','#0d9488',
+];
+
+function normalPdf(z) {
+  return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+}
+
+function drawCurve(scaledItems, rangeItems) {
+  const svg = document.getElementById('curveSvg');
+  const legend = document.getElementById('legend');
+  const wrapper = document.getElementById('curveWrapper');
+  const tooltip = document.getElementById('svgTooltip');
+  svg.innerHTML = '';
+  legend.innerHTML = '';
+
+  const W = 700, H = 380;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const pad = { top: 80, bottom: 55, left: 40, right: 40 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  const zMin = -3.5, zMax = 3.5;
+  function xOf(z) { return pad.left + ((z - zMin) / (zMax - zMin)) * cw; }
+  function yOf(p) { return pad.top + ch - (p / 0.41) * ch; }
+
+  // Helper: show tooltip relative to wrapper
+  function showTooltip(evt, text) {
+    const rect = wrapper.getBoundingClientRect();
+    const mx = evt.clientX - rect.left;
+    const my = evt.clientY - rect.top;
+    tooltip.textContent = text;
+    tooltip.style.left = mx + 'px';
+    tooltip.style.top = my + 'px';
+    tooltip.classList.add('visible');
+  }
+  function hideTooltip() { tooltip.classList.remove('visible'); }
+
+  // Gradient defs
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const grad = document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
+  grad.id = 'curveGrad';
+  grad.setAttribute('x1','0'); grad.setAttribute('y1','0');
+  grad.setAttribute('x2','0'); grad.setAttribute('y2','1');
+  const s1 = document.createElementNS('http://www.w3.org/2000/svg','stop');
+  s1.setAttribute('offset','0%'); s1.setAttribute('stop-color','#3b82f6'); s1.setAttribute('stop-opacity','0.3');
+  const s2 = document.createElementNS('http://www.w3.org/2000/svg','stop');
+  s2.setAttribute('offset','100%'); s2.setAttribute('stop-color','#3b82f6'); s2.setAttribute('stop-opacity','0.05');
+  grad.append(s1, s2);
+  defs.append(grad);
+  svg.append(defs);
+
+  // Filled area
+  let pathD = `M ${xOf(zMin)} ${yOf(0)}`;
+  for (let z = zMin; z <= zMax; z += 0.02) {
+    pathD += ` L ${xOf(z)} ${yOf(normalPdf(z))}`;
+  }
+  pathD += ` L ${xOf(zMax)} ${yOf(0)} Z`;
+  const area = document.createElementNS('http://www.w3.org/2000/svg','path');
+  area.setAttribute('d', pathD);
+  area.setAttribute('fill', 'url(#curveGrad)');
+  svg.append(area);
+
+  // Curve line
+  let lineD = '';
+  for (let z = zMin; z <= zMax; z += 0.02) {
+    lineD += (lineD ? ' L ' : 'M ') + `${xOf(z)} ${yOf(normalPdf(z))}`;
+  }
+  const line = document.createElementNS('http://www.w3.org/2000/svg','path');
+  line.setAttribute('d', lineD);
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke', '#3b82f6');
+  line.setAttribute('stroke-width', '2.5');
+  svg.append(line);
+
+  // X-axis
+  const axis = document.createElementNS('http://www.w3.org/2000/svg','line');
+  axis.setAttribute('x1', pad.left); axis.setAttribute('y1', yOf(0));
+  axis.setAttribute('x2', W - pad.right); axis.setAttribute('y2', yOf(0));
+  axis.setAttribute('stroke', '#cbd5e1'); axis.setAttribute('stroke-width', '1');
+  svg.append(axis);
+
+  // SD labels & guides
+  for (let sd = -3; sd <= 3; sd++) {
+    const x = xOf(sd);
+    const tick = document.createElementNS('http://www.w3.org/2000/svg','line');
+    tick.setAttribute('x1', x); tick.setAttribute('y1', yOf(0));
+    tick.setAttribute('x2', x); tick.setAttribute('y2', yOf(0) + 6);
+    tick.setAttribute('stroke', '#94a3b8'); tick.setAttribute('stroke-width', '1');
+    svg.append(tick);
+
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x', x); txt.setAttribute('y', yOf(0) + 20);
+    txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('fill', '#64748b'); txt.setAttribute('font-size', '11');
+    txt.textContent = sd === 0 ? 'Gj.snitt' : (sd > 0 ? `+${sd} SD` : `${sd} SD`);
+    svg.append(txt);
+
+    const scaledVal = 10 + sd * 3;
+    const txt2 = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt2.setAttribute('x', x); txt2.setAttribute('y', yOf(0) + 34);
+    txt2.setAttribute('text-anchor', 'middle');
+    txt2.setAttribute('fill', '#94a3b8'); txt2.setAttribute('font-size', '10');
+    txt2.textContent = `SS ${scaledVal}`;
+    svg.append(txt2);
+
+    if (sd !== 0) {
+      const guide = document.createElementNS('http://www.w3.org/2000/svg','line');
+      guide.setAttribute('x1', x); guide.setAttribute('y1', pad.top);
+      guide.setAttribute('x2', x); guide.setAttribute('y2', yOf(0));
+      guide.setAttribute('stroke', '#e2e8f0'); guide.setAttribute('stroke-width', '1');
+      guide.setAttribute('stroke-dasharray', '4,4');
+      svg.append(guide);
+    }
+  }
+
+  // --- Draw range bars for percentile items ---
+  const barH = 10;
+  const barBaseY = yOf(0) - 14; // just above x-axis
+  const barStep = 16;
+  rangeItems.forEach((item, i) => {
+    const [zLo, zHi] = item.zRange;
+    const x1 = xOf(Math.max(zMin + 0.05, zLo));
+    const x2 = xOf(Math.min(zMax - 0.05, zHi));
+    const y = barBaseY - i * barStep;
+    const color = item.color;
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', x1);
+    rect.setAttribute('y', y - barH / 2);
+    rect.setAttribute('width', Math.max(4, x2 - x1));
+    rect.setAttribute('height', barH);
+    rect.setAttribute('rx', barH / 2);
+    rect.setAttribute('fill', color);
+    rect.setAttribute('opacity', '0.55');
+    rect.setAttribute('style', 'cursor:pointer');
+    rect.addEventListener('mouseenter', e => showTooltip(e, `${item.label}: ${item.valueLabel}`));
+    rect.addEventListener('mousemove', e => showTooltip(e, `${item.label}: ${item.valueLabel}`));
+    rect.addEventListener('mouseleave', hideTooltip);
+    svg.append(rect);
+
+    // Outline
+    const outline = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    outline.setAttribute('x', x1);
+    outline.setAttribute('y', y - barH / 2);
+    outline.setAttribute('width', Math.max(4, x2 - x1));
+    outline.setAttribute('height', barH);
+    outline.setAttribute('rx', barH / 2);
+    outline.setAttribute('fill', 'none');
+    outline.setAttribute('stroke', color);
+    outline.setAttribute('stroke-width', '1.5');
+    outline.setAttribute('opacity', '0.8');
+    outline.setAttribute('style', 'pointer-events:none');
+    svg.append(outline);
+
+    // Short label centered
+    const midX = (x1 + x2) / 2;
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x', midX);
+    lbl.setAttribute('y', y + 3.5);
+    lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('fill', '#fff');
+    lbl.setAttribute('font-size', '8');
+    lbl.setAttribute('font-weight', '700');
+    lbl.setAttribute('style', 'pointer-events:none');
+    lbl.textContent = item.shortLabel;
+    svg.append(lbl);
+
+    // Legend
+    const li = document.createElement('div');
+    li.className = 'legend-item';
+    li.innerHTML = `<span class="legend-bar" style="background:${color}"></span>${item.label}: ${item.valueLabel}`;
+    legend.append(li);
+  });
+
+  // --- Draw dots for scaled score items (lifted above curve) ---
+  const liftBase = 30;
+  const liftStep = 22;
+
+  // Bucket by x position for stagger
+  const xBuckets = {};
+  scaledItems.forEach((item, i) => {
+    const clampedZ = Math.max(zMin + 0.1, Math.min(zMax - 0.1, item.z));
+    const bucket = Math.round(xOf(clampedZ) / 15);
+    if (!xBuckets[bucket]) xBuckets[bucket] = [];
+    xBuckets[bucket].push(i);
+  });
+  const staggerIndex = new Array(scaledItems.length).fill(0);
+  Object.values(xBuckets).forEach(indices => {
+    indices.forEach((idx, pos) => { staggerIndex[idx] = pos; });
+  });
+
+  scaledItems.forEach((item, i) => {
+    const clampedZ = Math.max(zMin + 0.1, Math.min(zMax - 0.1, item.z));
+    const x = xOf(clampedZ);
+    const curveY = yOf(normalPdf(clampedZ));
+    const lift = liftBase + staggerIndex[i] * liftStep;
+    const dotY = curveY - lift;
+    const color = item.color;
+
+    // Connector
+    const conn = document.createElementNS('http://www.w3.org/2000/svg','line');
+    conn.setAttribute('x1', x); conn.setAttribute('y1', curveY);
+    conn.setAttribute('x2', x); conn.setAttribute('y2', dotY);
+    conn.setAttribute('stroke', color); conn.setAttribute('stroke-width', '1.5');
+    conn.setAttribute('stroke-dasharray', '3,3'); conn.setAttribute('opacity', '0.4');
+    svg.append(conn);
+
+    // Tick on curve
+    const curTick = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    curTick.setAttribute('cx', x); curTick.setAttribute('cy', curveY);
+    curTick.setAttribute('r', '2.5');
+    curTick.setAttribute('fill', color); curTick.setAttribute('opacity', '0.5');
+    svg.append(curTick);
+
+    // Dot
+    const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circ.setAttribute('cx', x); circ.setAttribute('cy', dotY);
+    circ.setAttribute('r', '6');
+    circ.setAttribute('fill', color); circ.setAttribute('stroke', '#fff');
+    circ.setAttribute('stroke-width', '2');
+    circ.setAttribute('style', 'cursor:pointer');
+    circ.addEventListener('mouseenter', e => showTooltip(e, `${item.label}: ${item.valueLabel}`));
+    circ.addEventListener('mousemove', e => showTooltip(e, `${item.label}: ${item.valueLabel}`));
+    circ.addEventListener('mouseleave', hideTooltip);
+    svg.append(circ);
+
+    // Short label
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x', x); lbl.setAttribute('y', dotY - 10);
+    lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('fill', color); lbl.setAttribute('font-size', '10');
+    lbl.setAttribute('font-weight', '600');
+    lbl.setAttribute('style', 'pointer-events:none');
+    lbl.textContent = item.shortLabel;
+    svg.append(lbl);
+
+    // Legend
+    const li = document.createElement('div');
+    li.className = 'legend-item';
+    li.innerHTML = `<span class="legend-dot" style="background:${color}"></span>${item.label}: ${item.valueLabel}`;
+    legend.append(li);
+  });
+}
+
+document.getElementById('calcBtn').addEventListener('click', () => {
+  const ageGroup = document.getElementById('ageGroup').value;
+  if (!ageGroup) { alert('Velg aldersgruppe først.'); return; }
+  if (!NORMS) { alert('Normdata er ikke lastet ennå.'); return; }
+
+  const ageData = NORMS[ageGroup];
+  const tbody = document.querySelector('#resultsTable tbody');
+  tbody.innerHTML = '';
+
+  const scaledCurveItems = [];
+  const rangeCurveItems = [];
+  let hasResults = false;
+  let colorIdx = 0;
+
+  // Short labels for curve
+  const shortLabels = {
+    ordliste_innlaering: 'OI',
+    historie_innlaering: 'HI',
+    figurkopiering: 'FK',
+    verbal_flyt_a: 'VFa',
+    verbal_flyt_b: 'VFb',
+    tallhukommelse: 'TH',
+    koding: 'KO',
+    historiegjenkalling: 'HG',
+    figurgjenkalling: 'FG',
+    linjeorientering: 'LO',
+    bildebenevning: 'BB',
+    ordlistegjenkalling: 'OG',
+    ordlistegjenkjenning: 'OGj',
+  };
+
+  // Process scaled subtests
+  SCALED_SUBTESTS.forEach(sub => {
+    const el = document.getElementById('raw_' + sub.key);
+    const rawStr = el.value.trim();
+    if (rawStr === '') return;
+    const raw = parseInt(rawStr, 10);
+    if (isNaN(raw)) return;
+
+    const scaled = lookupScaled(ageData, sub.key, raw);
+    if (scaled === null) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="name">${sub.label}</td><td class="score">${raw}</td><td class="score">&mdash;</td><td><span class="badge badge-low">Utenfor normtabell</span></td>`;
+      tbody.append(tr);
+    } else {
+      const cls = classifyScaled(scaled);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="name">${sub.label}</td><td class="score">${raw}</td><td class="score">SS ${scaled}</td><td><span class="badge ${cls.cls}">${cls.label}</span></td>`;
+      tbody.append(tr);
+      scaledCurveItems.push({
+        label: sub.label,
+        shortLabel: shortLabels[sub.key] || sub.key.substring(0,3).toUpperCase(),
+        z: scaledToZ(scaled),
+        valueLabel: `SS ${scaled}`,
+        color: DOT_COLORS[colorIdx % DOT_COLORS.length],
+      });
+    }
+    colorIdx++;
+    hasResults = true;
+  });
+
+  // Process percentile subtests
+  PERCENTILE_SUBTESTS.forEach(sub => {
+    const el = document.getElementById('raw_' + sub.key);
+    const rawStr = el.value.trim();
+    if (rawStr === '') return;
+    const raw = parseInt(rawStr, 10);
+    if (isNaN(raw)) return;
+
+    const pct = lookupPercentile(ageData, sub.key, raw);
+    if (pct === null) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="name">${sub.label}</td><td class="score">${raw}</td><td class="score">&mdash;</td><td><span class="badge badge-low">Utenfor normtabell</span></td>`;
+      tbody.append(tr);
+    } else {
+      const cls = classifyPercentile(pct);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="name">${sub.label}</td><td class="score">${raw}</td><td class="score">P ${pct}</td><td><span class="badge ${cls.cls}">${cls.label}</span></td>`;
+      tbody.append(tr);
+      rangeCurveItems.push({
+        label: sub.label,
+        shortLabel: shortLabels[sub.key] || sub.key.substring(0,3).toUpperCase(),
+        z: percentileToZ(pct),
+        zRange: percentileToZRange(pct),
+        valueLabel: `Persentil ${pct}`,
+        color: DOT_COLORS[colorIdx % DOT_COLORS.length],
+      });
+    }
+    colorIdx++;
+    hasResults = true;
+  });
+
+  document.getElementById('noResults').style.display = hasResults ? 'none' : 'block';
+
+  if (scaledCurveItems.length > 0 || rangeCurveItems.length > 0) {
+    drawCurve(scaledCurveItems, rangeCurveItems);
+  }
+
+  const resultsEl = document.getElementById('results');
+  resultsEl.classList.add('visible');
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+</script>
+</body>
+</html>
