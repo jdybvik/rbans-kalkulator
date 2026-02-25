@@ -483,12 +483,12 @@ function lookupPercentile(ageData, subtest, rawScore) {
 }
 
 function classifyScaled(s) {
-  if (s <= 4) return { label: 'Svært lav skår', cls: 'badge-very-low' };
-  if (s <= 6) return { label: 'Under gjennomsnittlig skår', cls: 'badge-below' };
-  if (s <= 8) return { label: 'Lav gjennomsnittlig skår', cls: 'badge-low-avg' };
-  if (s <= 12) return { label: 'Gjennomsnittlig skår', cls: 'badge-avg' };
-  if (s <= 14) return { label: 'Høy gjennomsnittlig skår', cls: 'badge-high-avg' };
-  if (s <= 16) return { label: 'Over gjennomsnittlig skår', cls: 'badge-above' };
+  if (s <= 3) return { label: 'Svært lav skår', cls: 'badge-very-low' };
+  if (s <= 5) return { label: 'Under gjennomsnittlig skår', cls: 'badge-below' };
+  if (s <= 7) return { label: 'Lav gjennomsnittlig skår', cls: 'badge-low-avg' };
+  if (s <= 11) return { label: 'Gjennomsnittlig skår', cls: 'badge-avg' };
+  if (s <= 13) return { label: 'Høy gjennomsnittlig skår', cls: 'badge-high-avg' };
+  if (s <= 15) return { label: 'Over gjennomsnittlig skår', cls: 'badge-above' };
   return { label: 'Svært høy skår', cls: 'badge-very-high' };
 }
 
