@@ -255,10 +255,13 @@
     white-space: nowrap;
   }
 
-  .badge-low { background: #fef2f2; color: var(--red); }
+  .badge-very-low { background: #fef2f2; color: var(--red); }
   .badge-below { background: #fff7ed; color: var(--orange); }
+  .badge-low-avg { background: #fefce8; color: #a16207; }
   .badge-avg { background: #f0fdf4; color: var(--green); }
+  .badge-high-avg { background: #ecfdf5; color: #047857; }
   .badge-above { background: #eff6ff; color: var(--primary); }
+  .badge-very-high { background: #eef2ff; color: #4338ca; }
 
   /* Normal curve */
   .curve-wrapper {
@@ -480,17 +483,22 @@ function lookupPercentile(ageData, subtest, rawScore) {
 }
 
 function classifyScaled(s) {
-  if (s <= 3) return { label: 'Klart under gj.snitt', cls: 'badge-low' };
-  if (s <= 6) return { label: 'Under gjennomsnitt', cls: 'badge-below' };
-  if (s <= 13) return { label: 'Gjennomsnitt', cls: 'badge-avg' };
-  return { label: 'Over gjennomsnitt', cls: 'badge-above' };
+  if (s <= 4) return { label: 'Svært lav skår', cls: 'badge-very-low' };
+  if (s <= 6) return { label: 'Under gjennomsnittlig skår', cls: 'badge-below' };
+  if (s <= 8) return { label: 'Lav gjennomsnittlig skår', cls: 'badge-low-avg' };
+  if (s <= 12) return { label: 'Gjennomsnittlig skår', cls: 'badge-avg' };
+  if (s <= 14) return { label: 'Høy gjennomsnittlig skår', cls: 'badge-high-avg' };
+  if (s <= 16) return { label: 'Over gjennomsnittlig skår', cls: 'badge-above' };
+  return { label: 'Svært høy skår', cls: 'badge-very-high' };
 }
 
 function classifyPercentile(p) {
-  if (p === '≤ 2' || p === '3–9') return { label: 'Klart under gj.snitt', cls: 'badge-low' };
-  if (p === '10–16' || p === '17–25') return { label: 'Under gjennomsnitt', cls: 'badge-below' };
-  if (p === '26–50' || p === '51–75') return { label: 'Gjennomsnitt', cls: 'badge-avg' };
-  return { label: 'Over gjennomsnitt', cls: 'badge-above' };
+  if (p === '≤ 2') return { label: 'Svært lav skår', cls: 'badge-very-low' };
+  if (p === '3–9') return { label: 'Under gjennomsnittlig skår', cls: 'badge-below' };
+  if (p === '10–16' || p === '17–25') return { label: 'Lav gjennomsnittlig skår', cls: 'badge-low-avg' };
+  if (p === '26–50' || p === '51–75') return { label: 'Gjennomsnittlig skår', cls: 'badge-avg' };
+  if (p === '> 75') return { label: 'Høy gjennomsnittlig skår', cls: 'badge-high-avg' };
+  return { label: 'Gjennomsnittlig skår', cls: 'badge-avg' };
 }
 
 // Map scaled score -> approximate z-score (scaled mean=10, SD=3)
