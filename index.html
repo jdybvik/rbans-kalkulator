@@ -381,8 +381,8 @@
     </h2>
 
     <div class="subtest-grid">
-      <div class="subtest-item"><label for="raw_ordliste_innlaering">Ordliste innl&aelig;ring</label><input type="number" id="raw_ordliste_innlaering" min="0" placeholder="&mdash;"></div>
-      <div class="subtest-item"><label for="raw_historie_innlaering">Historie innl&aelig;ring</label><input type="number" id="raw_historie_innlaering" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_ordliste_innlaering">Ordlisteinnl&aelig;ring</label><input type="number" id="raw_ordliste_innlaering" min="0" placeholder="&mdash;"></div>
+      <div class="subtest-item"><label for="raw_historie_innlaering">Historieinnl&aelig;ring</label><input type="number" id="raw_historie_innlaering" min="0" placeholder="&mdash;"></div>
       <div class="subtest-item"><label for="raw_figurkopiering">Figurkopiering</label><input type="number" id="raw_figurkopiering" min="0" placeholder="&mdash;"></div>
       <div class="subtest-item"><label for="raw_verbal_flyt_a">Verbal flyt versjon A</label><input type="number" id="raw_verbal_flyt_a" min="0" placeholder="&mdash;"></div>
       <div class="subtest-item"><label for="raw_verbal_flyt_b">Verbal flyt versjon B</label><input type="number" id="raw_verbal_flyt_b" min="0" placeholder="&mdash;"></div>
@@ -447,8 +447,8 @@ fetch('rbans_data.json')
   .catch(() => alert('Kunne ikke laste normdata (rbans_data.json).'));
 
 const SCALED_SUBTESTS = [
-  { key: 'ordliste_innlaering', label: 'Ordliste innlæring' },
-  { key: 'historie_innlaering', label: 'Historie innlæring' },
+  { key: 'ordliste_innlaering', label: 'Ordlisteinnlæring' },
+  { key: 'historie_innlaering', label: 'Historieinnlæring' },
   { key: 'figurkopiering', label: 'Figurkopiering' },
   { key: 'verbal_flyt_a', label: 'Verbal flyt versjon A' },
   { key: 'verbal_flyt_b', label: 'Verbal flyt versjon B' },
@@ -691,15 +691,15 @@ function drawCurve(scaledItems, rangeItems) {
     outline.setAttribute('style', 'pointer-events:none');
     svg.append(outline);
 
-    // Short label centered
+    // Label above bar
     const midX = (x1 + x2) / 2;
     const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
     lbl.setAttribute('x', midX);
-    lbl.setAttribute('y', y + 3.5);
+    lbl.setAttribute('y', y - barH / 2 - 3);
     lbl.setAttribute('text-anchor', 'middle');
-    lbl.setAttribute('fill', '#fff');
+    lbl.setAttribute('fill', color);
     lbl.setAttribute('font-size', '8');
-    lbl.setAttribute('font-weight', '700');
+    lbl.setAttribute('font-weight', '600');
     lbl.setAttribute('style', 'pointer-events:none');
     lbl.textContent = item.shortLabel;
     svg.append(lbl);
@@ -763,11 +763,11 @@ function drawCurve(scaledItems, rangeItems) {
     circ.addEventListener('mouseleave', hideTooltip);
     svg.append(circ);
 
-    // Short label
+    // Full label
     const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
     lbl.setAttribute('x', x); lbl.setAttribute('y', dotY - 10);
     lbl.setAttribute('text-anchor', 'middle');
-    lbl.setAttribute('fill', color); lbl.setAttribute('font-size', '10');
+    lbl.setAttribute('fill', color); lbl.setAttribute('font-size', '8');
     lbl.setAttribute('font-weight', '600');
     lbl.setAttribute('style', 'pointer-events:none');
     lbl.textContent = item.shortLabel;
@@ -797,19 +797,19 @@ document.getElementById('calcBtn').addEventListener('click', () => {
 
   // Short labels for curve
   const shortLabels = {
-    ordliste_innlaering: 'OI',
-    historie_innlaering: 'HI',
-    figurkopiering: 'FK',
-    verbal_flyt_a: 'VFa',
-    verbal_flyt_b: 'VFb',
-    tallhukommelse: 'TH',
-    koding: 'KO',
-    historiegjenkalling: 'HG',
-    figurgjenkalling: 'FG',
-    linjeorientering: 'LO',
-    bildebenevning: 'BB',
-    ordlistegjenkalling: 'OG',
-    ordlistegjenkjenning: 'OGj',
+    ordliste_innlaering: 'Ordlisteinnlæring',
+    historie_innlaering: 'Historieinnlæring',
+    figurkopiering: 'Figurkopiering',
+    verbal_flyt_a: 'Verbal flyt A',
+    verbal_flyt_b: 'Verbal flyt B',
+    tallhukommelse: 'Tallhukommelse',
+    koding: 'Koding',
+    historiegjenkalling: 'Historiegjenkalling',
+    figurgjenkalling: 'Figurgjenkalling',
+    linjeorientering: 'Linjeorientering',
+    bildebenevning: 'Bildebenevning',
+    ordlistegjenkalling: 'Ordlistegjenkalling',
+    ordlistegjenkjenning: 'Ordlistegjenkjenning',
   };
 
   // Process scaled subtests
