@@ -552,9 +552,9 @@ function drawCurve(scaledItems, rangeItems) {
   svg.innerHTML = '';
   legend.innerHTML = '';
 
-  const W = 700, H = 380;
+  const W = 700, H = 480;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  const pad = { top: 80, bottom: 55, left: 40, right: 40 };
+  const pad = { top: 170, bottom: 55, left: 40, right: 40 };
   const cw = W - pad.left - pad.right;
   const ch = H - pad.top - pad.bottom;
 
@@ -713,13 +713,13 @@ function drawCurve(scaledItems, rangeItems) {
 
   // --- Draw dots for scaled score items (lifted above curve) ---
   const liftBase = 30;
-  const liftStep = 22;
+  const liftStep = 28;
 
-  // Bucket by x position for stagger
+  // Bucket by x position for stagger (wider buckets to catch nearby labels)
   const xBuckets = {};
   scaledItems.forEach((item, i) => {
     const clampedZ = Math.max(zMin + 0.1, Math.min(zMax - 0.1, item.z));
-    const bucket = Math.round(xOf(clampedZ) / 15);
+    const bucket = Math.round(xOf(clampedZ) / 40);
     if (!xBuckets[bucket]) xBuckets[bucket] = [];
     xBuckets[bucket].push(i);
   });
